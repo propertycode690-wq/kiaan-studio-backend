@@ -265,7 +265,7 @@ export class CloudflareAiService {
     }
 
     // Save image asset to backend/uploads/generations
-    const uploadsDir = path.resolve(process.cwd(), 'uploads', 'generations')
+    const uploadsDir = path.resolve(env.UPLOADS_DIR, 'generations')
     fs.mkdirSync(uploadsDir, { recursive: true })
 
     const fileName = `gen_${jobId}_${Date.now()}.jpg`
@@ -312,7 +312,14 @@ export class CloudflareAiService {
       let resolvedPath = referenceImagePath
       if (resolvedPath.startsWith('/uploads/') || resolvedPath.startsWith('uploads/')) {
         const rel = resolvedPath.startsWith('/') ? resolvedPath.slice(1) : resolvedPath
-        resolvedPath = path.resolve(process.cwd(), rel)
+        const relWithoutUploads = rel.replace(/^uploads\/?/, '')
+        const candidatePaths = [
+          path.resolve(env.UPLOADS_DIR, relWithoutUploads),
+          path.resolve(process.cwd(), rel),
+          path.resolve(process.cwd(), 'uploads', relWithoutUploads)
+        ]
+        const found = candidatePaths.find(p => fs.existsSync(p))
+        if (found) resolvedPath = found
       } else if (resolvedPath.startsWith('/images/') || resolvedPath.startsWith('images/')) {
         const rel = resolvedPath.startsWith('/') ? resolvedPath.slice(1) : resolvedPath
         const candidatePaths = [
@@ -448,7 +455,7 @@ export class CloudflareAiService {
       throw new Error('[Cloudflare AI Error] Received empty or corrupted image data from Cloudflare.')
     }
 
-    const uploadsDir = path.resolve(process.cwd(), 'uploads', 'generations')
+    const uploadsDir = path.resolve(env.UPLOADS_DIR, 'generations')
     fs.mkdirSync(uploadsDir, { recursive: true })
 
     const fileName = `gen_${jobId}_${Date.now()}.jpg`

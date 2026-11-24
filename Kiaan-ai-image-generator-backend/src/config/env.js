@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -44,6 +45,11 @@ function validateEnv() {
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
     ENABLE_AI_WORKER: process.env.ENABLE_AI_WORKER === 'true',
+    UPLOADS_DIR: process.env.UPLOADS_DIR
+      ? path.resolve(process.env.UPLOADS_DIR)
+      : (fs.existsSync(path.resolve(__dirname, '../../uploads'))
+          ? path.resolve(__dirname, '../../uploads')
+          : path.resolve(process.cwd(), 'uploads')),
     CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID || '',
     CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN || '',
     CLOUDFLARE_IMG2IMG_ACCOUNT_ID: process.env.CLOUDFLARE_IMG2IMG_ACCOUNT_ID || '',

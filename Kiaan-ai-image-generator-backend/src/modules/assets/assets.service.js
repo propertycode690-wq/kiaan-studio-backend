@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '../../config/database.js'
+import { env } from '../../config/env.js'
 
 function formatToolName(type) {
   switch (type) {
@@ -353,10 +354,12 @@ export class AssetsService {
     }
 
     // Resolve file path safely and prevent directory traversal
+    const rel = asset.storagePath.replace(/^\/?uploads\/?/, '')
     const candidatePaths = [
+      path.resolve(env.UPLOADS_DIR, rel),
       path.resolve(process.cwd(), asset.storagePath.replace(/^\//, '')),
       path.resolve(process.cwd(), '../Kiaan-ai-image-generator-frontend/public', asset.storagePath.replace(/^\//, '')),
-      path.resolve(process.cwd(), 'uploads', asset.storagePath.replace(/^\/uploads\/?/, ''))
+      path.resolve(process.cwd(), 'uploads', rel)
     ]
 
     let resolvedPath = null

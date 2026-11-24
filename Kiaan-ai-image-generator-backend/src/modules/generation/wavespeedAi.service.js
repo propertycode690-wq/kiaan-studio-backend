@@ -226,7 +226,7 @@ export class WavespeedAiService {
     }
 
     // Save image asset to backend/uploads/generations
-    const uploadsDir = path.resolve(process.cwd(), 'uploads', 'generations')
+    const uploadsDir = path.resolve(env.UPLOADS_DIR, 'generations')
     fs.mkdirSync(uploadsDir, { recursive: true })
 
     const fileName = `gen_${jobId}_${Date.now()}.jpg`

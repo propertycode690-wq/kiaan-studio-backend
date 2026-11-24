@@ -3,6 +3,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import path from 'path'
+import fs from 'fs'
 import { env } from './config/env.js'
 import { requestLogger } from './middleware/requestLogger.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
@@ -66,8 +67,17 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 // 3. Request Logging
 app.use(requestLogger)
 
-// Static file serving for uploads & media
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')))
+// Ensure upload directories exist (compatible with Railway volume mount)
+const uploadSubdirs = ['generations', 'references', 'avatars', 'inputs']
+for (const sub of uploadSubdirs) {
+  const dir = path.join(env.UPLOADS_DIR, sub)
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+}
+
+// Static file serving for uploads & media (supports Railway persistent volume)
+app.use('/uploads', express.static(env.UPLOADS_DIR))
 
 // 4. Working Health Check Endpoint
 app.get('/api/health', (req, res) => {

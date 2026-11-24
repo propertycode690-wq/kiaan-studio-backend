@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import { prisma } from '../../config/database.js'
+import { env } from '../../config/env.js'
 import { hashPassword, comparePassword, sanitizeUser } from '../auth/auth.utils.js'
 
 export class UsersService {
@@ -83,7 +84,7 @@ export class UsersService {
             throw error
           }
 
-          const uploadDir = path.resolve(process.cwd(), 'uploads/avatars')
+          const uploadDir = path.resolve(env.UPLOADS_DIR, 'avatars')
           fs.mkdirSync(uploadDir, { recursive: true })
 
           const filename = `avatar_${userId}_${Date.now()}.${ext}`

@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import { env } from '../config/env.js'
 
 /**
  * Parses image format, MIME type, and dimensions from raw buffer without external binary dependencies.
@@ -139,8 +140,14 @@ export function processAndSaveReferenceImage(rawInput, userId = 'default') {
     buffer = Buffer.from(match[2], 'base64')
   } else if (rawInput.startsWith('/uploads/') || rawInput.startsWith('uploads/')) {
     const localRel = rawInput.startsWith('/') ? rawInput.slice(1) : rawInput
-    const absPath = path.resolve(process.cwd(), localRel)
-    if (!fs.existsSync(absPath)) {
+    const relWithoutUploads = localRel.replace(/^uploads\/?/, '')
+    const candidatePaths = [
+      path.resolve(env.UPLOADS_DIR, relWithoutUploads),
+      path.resolve(process.cwd(), localRel),
+      path.resolve(process.cwd(), 'uploads', relWithoutUploads)
+    ]
+    const absPath = candidatePaths.find(p => fs.existsSync(p))
+    if (!absPath) {
       const error = new Error(`Referenced image file not found on server: ${rawInput}`)
       error.statusCode = 404
       error.code = 'FILE_NOT_FOUND'
@@ -174,7 +181,7 @@ export function processAndSaveReferenceImage(rawInput, userId = 'default') {
   const validatedMeta = validateImageBuffer(buffer)
 
   // Persist to backend/uploads/inputs/
-  const inputsDir = path.resolve(process.cwd(), 'uploads', 'inputs')
+  const inputsDir = path.resolve(env.UPLOADS_DIR, 'inputs')
   fs.mkdirSync(inputsDir, { recursive: true })
 
   const uniqueId = crypto.randomUUID ? crypto.randomUUID() : Date.now()
